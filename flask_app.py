@@ -187,10 +187,12 @@ def submit_form(tid=None):
 @app.route("/submit/",methods=['POST'])
 def submit_template():
     fields = request.get_json(force = True)
+    print('fields are -' ,fields)
     # fields are : {'0': {'fieldname': 'q', 'desc': 'q', 'boxcount': None, 'type': 'Text', 'left_x': 528, 'right_x':703, 'top_y': 231, 'bottom_y': 266, 'image_width': 1349, 'image_height': 1568, 'templateName': 'wq', 'username': 'admin', 'templateDesc': 'qw'}}
     template = Template()
 
     user = sqlsession.query(User).filter_by(username=fields['0']['username']).first()
+    print(user)
     template.userid = user.id
     template.name = fields['0']['templateName']
     if 'templateDesc' in fields['0']:
@@ -342,4 +344,4 @@ def delete_field(fid=None):
 
 if __name__ == '__main__':
     app.secret_key = os.urandom(12)
-    app.run(host='0.0.0.0' ,port = '9000',debug=True)
+    app.run(host='0.0.0.0' ,port = '9000',debug=False)

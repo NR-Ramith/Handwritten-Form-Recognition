@@ -2,11 +2,13 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
-from scipy.misc import imsave, imread, imresize
+# from scipy.misc import imsave, imread, imresize
+from imageio import imsave, imread
 from matplotlib import pyplot as plt
 import numpy as np
 import argparse
 from keras.models import model_from_yaml
+# from keras.models import model_from_json
 import re
 import base64
 import pickle
@@ -30,6 +32,11 @@ def load_model(bin_dir):
     yaml_file.close()
     model = model_from_yaml(loaded_model_yaml)
 
+    # json_file = open('%s/model.json' % bin_dir, 'r')
+    # loaded_model_json = json_file.read()
+    # json_file.close()
+    # model = model_from_json(loaded_model_json)
+
     # load weights into new model
     model.load_weights('%s/model.h5' % bin_dir)
     return model
@@ -48,7 +55,7 @@ def predict(img,model,mapping):
     else:
         img = process(img)
 
-        img = imresize(img,(28,28))
+        img = cv2.resize(img,(28,28))
         img = img.reshape(1,28,28,1)
         img = img.astype('float32')
         img /= 255
