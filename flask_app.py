@@ -272,10 +272,16 @@ def show_template():
 
 @app.route("/showData/<tid>",methods=['GET'])
 def show_data(tid=None):
-    rows = engine.execute('select * from "' + tid + '"')
+    # Create an inspector to inspect the database
+    inspector = inspect(engine)
+
+    # Get the column names for the specified table (tid)
+    column_names = [column['name'] for column in inspector.get_columns(tid)]
+    with engine.connect() as conn:
+        rows = conn.execute(text('select * from "' + tid + '"'))
     json_data=[]
     for row in rows:
-        json_data.append(dict(zip(row.keys(),row)))
+        json_data.append(dict(zip(column_names,row)))
     response = app.response_class(
         response = json.dumps(json_data),
         mimetype='application/json'
@@ -286,13 +292,31 @@ def show_data(tid=None):
 
 @app.route("/showMarked/<tid>/<did>",methods=['GET'])
 def show_marked(tid=None,did=None):
+    # Create an inspector to inspect the database
+    inspector = inspect(engine)
+
+    # Get the column names for the specified table (tid)
+    column_names = [column['name'] for column in inspector.get_columns(tid)]
+    # print('Column names:', column_names)
+
     fields = sqlsession.query(Field).filter_by(templateid = tid).all()
+    # print('show_marked  fields -',fields)
     rows = json.dumps([c for c in fields], cls=AlchemyEncoder)
     fdata = eval(rows)
-    
-    el = engine.execute('select * from "' + tid + '" where id is '+did)
+    # print(fdata)
+    # conn = engine.connect()
+    try:
+        with engine.connect() as conn:
+            el = conn.execute(text('select * from "' + str(tid) + '" where id is '+did))
+        # print(el)
+    except Exception as e:
+        print('error: ',e)
+    # for it in el:
+    #     print('it - ',it)
+    #     data = dict(zip(it.keys(),it))   
     for it in el:
-        data = dict(zip(it.keys(),it))   
+        data = dict(zip(column_names,[val for val in it]))   
+    print(data)
         
     json_data=[]
     for key in data:
@@ -317,6 +341,7 @@ def show_marked(tid=None,did=None):
     )
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.status_code = 200
+    # conn.close()
     return response
 
 @app.route("/deleteTemplate/<tid>",methods=['DELETE'])
@@ -324,8 +349,8 @@ def delete_template(tid=None):
     template = sqlsession.query(Template).filter_by(id=tid).first()
     sqlsession.delete(template)
     sqlsession.commit()
-
-    engine.execute('drop table if exists \"' + tid + '\"')
+    with engine.connect() as conn:
+        conn.execute(text('drop table if exists "' + str(tid) + '"'))
 
     resp = jsonify({"error":None})
     resp.headers.add('Access-Control-Allow-Origin', '*')

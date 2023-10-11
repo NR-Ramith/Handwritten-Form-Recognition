@@ -67,9 +67,11 @@ def get_data(tid,model,mapping):
             box = block[0:block_height, s:e]
             cv2.imwrite(os.path.join(UPLOAD_FOLDER,"{}.png".format(str(id)+" "+str(i))), box)
             data+=predict(box,model,mapping)
+        print(data)
         
         columndata.append(data)
-
+    print(columns)
+    print(columndata)
     sql = 'INSERT INTO "'+str(tid)+'"("'+'","'.join(columns)+'") values('+",".join(["?"]*len(columns))+')'
     print(sql)
     cur.execute(sql,tuple(columndata))

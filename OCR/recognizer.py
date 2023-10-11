@@ -7,8 +7,8 @@ from imageio import imsave, imread
 from matplotlib import pyplot as plt
 import numpy as np
 import argparse
-from keras.models import model_from_yaml
-# from keras.models import model_from_json
+# from keras.models import model_from_yaml
+from keras.models import model_from_json
 import re
 import base64
 import pickle
@@ -27,15 +27,15 @@ def load_model(bin_dir):
     '''
 
     # load YAML and create model
-    yaml_file = open('%s/model.yaml' % bin_dir, 'r')
-    loaded_model_yaml = yaml_file.read()
-    yaml_file.close()
-    model = model_from_yaml(loaded_model_yaml)
+    # yaml_file = open('%s/model.yaml' % bin_dir, 'r')
+    # loaded_model_yaml = yaml_file.read()
+    # yaml_file.close()
+    # model = model_from_yaml(loaded_model_yaml)
 
-    # json_file = open('%s/model.json' % bin_dir, 'r')
-    # loaded_model_json = json_file.read()
-    # json_file.close()
-    # model = model_from_json(loaded_model_json)
+    json_file = open('%s/model.json' % bin_dir, 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model_json)
 
     # load weights into new model
     model.load_weights('%s/model.h5' % bin_dir)
@@ -142,5 +142,5 @@ def main():
     print("ACCURACY :: ",correct/total*100)
 
 model = load_model('./OCR/bin')
-model._make_predict_function()
+model.make_predict_function()
 mapping = pickle.load(open('%s/mapping.p' % './OCR/bin', 'rb'))
